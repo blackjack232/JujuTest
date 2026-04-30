@@ -1,9 +1,11 @@
 ﻿using Business;
 using Business.Interfaces;
 using Business.Services;
+using Business.Validators;
 using DataAccess;
 using DataAccess.Data;
 using DataAccess.Interfaces;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -31,7 +33,7 @@ namespace ProjectAPI.API
             services.AddScoped<JujuTestContext, JujuTestContext>();
             services.AddScoped<BaseService<Customer>, BaseService<Customer>>();
             services.AddScoped<BaseModel<Customer>, BaseModel<Customer>>();
-            services.AddScoped<BaseService<Post>, BaseService<Post>>();            
+            services.AddScoped<BaseService<Post>, BaseService<Post>>();
             services.AddScoped<BaseModel<Post>, BaseModel<Post>>();
 
 
@@ -50,9 +52,16 @@ namespace ProjectAPI.API
             {
                 loggingBuilder.AddSerilog(dispose: true);
             });
+            services.AddMvc()
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+                .AddFluentValidation(fv =>
+                {
+                    // Registra todos los validadores que estén en el mismo proyecto que 'CustomerCreateDtoValidator'
+                    fv.RegisterValidatorsFromAssemblyContaining<CustomerCreateDtoValidator>();
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-
+                    // Opcional: Esto hace que las validaciones de [Attributes] de .NET también funcionen
+                    fv.RunDefaultMvcValidationAfterFluentValidationExecutes = true;
+                });
 
             // ======== CONFIGURACIÓN DE SWAGGER =========
             services.AddSwaggerGen(c =>

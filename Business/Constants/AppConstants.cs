@@ -11,5 +11,13 @@
         public const int TypeFarandula = 1;
         public const int TypePolitica = 2;
         public const int TypeFutbol = 3;
+
+        // Paginación por defecto
+        public const int DefaultPageNumber = 1;
+        public const int DefaultPageSize = 10;
+        public const int MaxPageSize = 100;
+
+        // Validaciones de negocio
+        public const int CustomerNameMaxLength = 100;
     }
 }

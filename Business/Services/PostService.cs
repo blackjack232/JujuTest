@@ -1,14 +1,14 @@
 ﻿using Business.Constants;
-using Business.Dtos;
+using Business.Dtos.Request;
 using Business.Interfaces;
 using DataAccess.Data;
 using DataAccess.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using MySqlX.XDevAPI.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace Business.Services
 {
@@ -27,6 +27,7 @@ namespace Business.Services
         /// </summary>
         /// <param name="postRepo">Repositorio para la persistencia de publicaciones.</param>
         /// <param name="customerRepo">Repositorio para la verificación de existencia de clientes.</param>
+        /// <param name="logger">Instancia de ILogger para el registro de eventos.</param>
         public PostService(IBaseModel<Post> postRepo, IBaseModel<Customer> customerRepo, ILogger<PostService> logger)
         {
             _postRepo = postRepo;
@@ -35,101 +36,131 @@ namespace Business.Services
         }
 
         /// <summary>
-        /// Crea una publicación individual procesando reglas de negocio, constantes y validaciones (Punto 3).
+        /// Crea una publicación individual procesando reglas de negocio, constantes y validaciones de forma asíncrona (Punto 3).
         /// </summary>
         /// <param name="dto">DTO con la información necesaria para crear el Post.</param>
         /// <returns>La entidad <see cref="Post"/> persistida en la base de datos.</returns>
         /// <exception cref="KeyNotFoundException">Se lanza si el CustomerId proporcionado no existe.</exception>
-        public Post Create(PostCreateDto dto)
+        public async Task<ResponseApi<Post>> Create(PostCreate dto)
         {
             try
             {
-                // 1. Validar existencia de usuario usando el repositorio inyectado
-                if (!_customerRepo.GetAll.Any(c => c.CustomerId == dto.CustomerId))
+                var customer = await _customerRepo.FindById(dto.CustomerId);
+                if (customer == null)
                 {
-                    _logger.LogWarning(AppMessages.UserNotFound + " ID: {CustomerId}", dto.CustomerId);
-                    throw new KeyNotFoundException(AppMessages.UserNotFound);
+                    _logger.LogWarning(AppMessages.CustomerNotFoundWarning, dto.CustomerId);
+                    return new ResponseApi<Post>(AppMessages.CustomerNotFound);
                 }
 
-                var entity = new Post
-                {
-                    CustomerId = dto.CustomerId,
-                    Title = dto.Title,
-                    Body = dto.Body,
-                    Type = dto.Type,
-                    Category = dto.Category
-                };
+                var post = MapPost(dto);
+                var result = await _postRepo.Create(post);
 
-                // 2. Lógica de Body (Truncado a 97 caracteres si supera los 20)
-                if (!string.IsNullOrEmpty(entity.Body) && entity.Body.Length > AppConstants.MinBodyThreshold)
-                {
-                    if (entity.Body.Length > AppConstants.MaxBodyLength)
-                    {
-                        entity.Body = entity.Body.Substring(0, AppConstants.MaxBodyLength);
-                    }
-                    entity.Body += "...";
-                }
-
-                // 3. Lógica de Categoría (Switch clásico compatible con C# 7.3)
-                switch (entity.Type)
-                {
-                    case AppConstants.TypeFarandula:
-                        entity.Category = AppConstants.CategoryFarandula;
-                        break;
-                    case AppConstants.TypePolitica:
-                        entity.Category = AppConstants.CategoryPolitica;
-                        break;
-                    case AppConstants.TypeFutbol:
-                        entity.Category = AppConstants.CategoryFutbol;
-                        break;
-                    default:
-                        // Mantiene la categoría original si no coincide con los tipos definidos
-                        break;
-                }
-
-                var result = _postRepo.Create(entity);
                 _logger.LogInformation(AppMessages.PostCreated, result.PostId);
-
-                return result;
+                return new ResponseApi<Post>(result, AppMessages.PostCreatedSuccess);
             }
-            catch (Exception ex) when (!(ex is KeyNotFoundException))
+            catch (Exception ex)
             {
                 _logger.LogError(ex, AppMessages.PostUpdateError);
-                throw;
+                return new ResponseApi<Post>(AppMessages.InternalServerError);
             }
         }
 
         /// <summary>
-        /// Realiza el procesamiento y creación de múltiples publicaciones de forma masiva (Punto 5).
+        /// Mapea y procesa los datos del DTO a la entidad Post aplicando reglas de formato.
+        /// </summary>
+        private Post MapPost(PostCreate dto)
+        {
+            string processedBody = dto.Body;
+            if (!string.IsNullOrEmpty(dto.Body) && dto.Body.Length > 20)
+            {
+                processedBody = dto.Body.Substring(0, Math.Min(dto.Body.Length, 97)) + "...";
+            }
+            switch (dto.Type)
+            {
+                case AppConstants.TypeFarandula:
+                    dto.Category = AppConstants.CategoryFarandula;
+                    break;
+                case AppConstants.TypePolitica:
+                    dto.Category = AppConstants.CategoryPolitica;
+                    break;
+                case AppConstants.TypeFutbol:
+                    dto.Category = AppConstants.CategoryFutbol;
+                    break;
+            }
+
+            return new Post
+            {
+                CustomerId = dto.CustomerId,
+                Title = dto.Title,
+                Body = processedBody,
+                Category = dto.Category,
+                Type = dto.Type
+            };
+        }
+
+        /// <summary>
+        /// Realiza el procesamiento y creación de múltiples publicaciones de forma masiva y asíncrona (Punto 5).
         /// </summary>
         /// <remarks>
         /// Este método garantiza que cada elemento de la lista pase por las mismas 
         /// reglas de validación y negocio que una creación individual.
         /// </remarks>
-        /// <param name="entities">Lista de DTOs de tipo <see cref="PostCreateDto"/>.</param>
-        public void CreateBulk(List<PostCreateDto> entities)
+        /// <param name="entities">Lista de DTOs de tipo <see cref="PostCreate"/>.</param>
+        public async Task<ResponseApi<bool>> CreateBulk(List<PostCreate> entities)
         {
-            if (entities == null || !entities.Any()) return;
+            if (entities == null || !entities.Any())
+                return new ResponseApi<bool>(AppMessages.ValidationError);
 
             _logger.LogInformation(AppMessages.PostBulkStarted, entities.Count);
+            int successCount = 0;
 
             foreach (var postDto in entities)
             {
-                try
-                {
-                    Create(postDto);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, AppMessages.LogErrorBulk);
-                }
+                var response = await Create(postDto);
+                if (response.Succeeded) successCount++;
             }
+
+            return new ResponseApi<bool>(true, string.Format(AppMessages.PostBulkStarted, successCount));
         }
 
         /// <summary>
-        /// Expone todas las publicaciones registradas como un IQueryable.
+        /// Expone todas las publicaciones registradas como un IQueryable de forma asíncrona.
         /// </summary>
         /// <returns>Consulta base para las publicaciones.</returns>
-        public IQueryable<Post> GetAll() => _postRepo.GetAll;
+        /// <summary>
+        /// Obtiene una lista paginada de publicaciones de forma asíncrona.
+        /// </summary>
+        /// <param name="page">Número de la página a recuperar.</param>
+        /// <param name="size">Cantidad de registros por página.</param>
+        /// <returns>Una respuesta estandarizada con los datos paginados de Post.</returns>
+        public async Task<ResponseApi<PagedResponse<Post>>> GetAllPagedAsync(int page, int size)
+        {
+            try
+            {
+                var query = _postRepo.GetAll;
+                int totalRecords = await query.CountAsync();
+
+                var data = await query
+                    .OrderByDescending(p => p.PostId) 
+                    .Skip((page - 1) * size)
+                    .Take(size)
+                    .ToListAsync();
+
+                var pagedData = new PagedResponse<Post>
+                {
+                    Data = data,
+                    PageNumber = page,
+                    PageSize = size,
+                    TotalRecords = totalRecords
+                };
+
+                return new ResponseApi<PagedResponse<Post>>(pagedData, AppMessages.PaginationSuccess);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, AppMessages.PostUpdateError);
+                return new ResponseApi<PagedResponse<Post>>(AppMessages.InternalServerError);
+            }
+        }
     }
 }

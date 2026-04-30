@@ -1,49 +1,50 @@
-﻿using Business.Dtos;
+﻿using Business.Dtos.Request;
 using DataAccess.Data;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Business.Interfaces
 {
     /// <summary>
-    /// Define el contrato para los servicios de gestión de clientes (Customers).
-    /// Contiene la lógica de negocio requerida para la creación, actualización y eliminación.
+    /// Interfaz para el servicio de gestión de clientes.
+    /// Define las operaciones de negocio que retornan un envoltorio ResponseApi.
     /// </summary>
     public interface ICustomerService
     {
         /// <summary>
-        /// Recupera la colección completa de clientes registrados en el sistema.
+        /// Obtiene todos los clientes registrados.
         /// </summary>
-        /// <returns>Una enumeración de entidades <see cref="Customer"/>.</returns>
-        IEnumerable<Customer> GetAll();
+        /// <returns>Una respuesta estandarizada con la lista de entidades Customer.</returns>
+        Task<ResponseApi<IEnumerable<Customer>>> GetAll();
 
         /// <summary>
-        /// Realiza el registro de un nuevo cliente tras validar las reglas de negocio.
+        /// Obtiene una lista paginada de clientes.
         /// </summary>
-        /// <remarks>
-        /// Regla de negocio: Se debe validar que el nombre del cliente sea único antes de persistir (Punto 2).
-        /// </remarks>
-        /// <param name="customer">DTO con la información necesaria para la creación.</param>
-        /// <returns>La entidad <see cref="Customer"/> creada y con ID asignado.</returns>
-        /// <exception cref="System.InvalidOperationException">Lanzada si el nombre ya existe.</exception>
-        Customer Create(CustomerCreateDto customer);
+        /// <param name="page">Número de página actual.</param>
+        /// <param name="size">Cantidad de registros por página.</param>
+        /// <returns>Una respuesta estandarizada con los datos de paginación.</returns>
+        Task<ResponseApi<PagedResponse<Customer>>> GetPagedCostumersAsync(int page, int size);
 
         /// <summary>
-        /// Actualiza los datos de un cliente existente identificado por su ID (Punto 1).
+        /// Crea un nuevo cliente en el sistema.
         /// </summary>
-        /// <param name="id">Identificador único del cliente a modificar.</param>
-        /// <param name="customer">DTO con los nuevos valores del cliente.</param>
-        /// <returns>La entidad <see cref="Customer"/> actualizada.</returns>
-        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Lanzada si el ID no corresponde a un cliente existente.</exception>
-        Customer Update(int id, CustomerUpdateDto customer);
+        /// <param name="dto">Datos del cliente a crear.</param>
+        /// <returns>Una respuesta con el cliente creado o el detalle del error.</returns>
+        Task<ResponseApi<Customer>> Create(CustomerCreate dto);
 
         /// <summary>
-        /// Elimina un cliente del sistema y procesa la limpieza de datos relacionados (Punto 4).
+        /// Actualiza la información de un cliente existente.
         /// </summary>
-        /// <remarks>
-        /// Regla de negocio: Al eliminar un cliente, se deben eliminar primero todos sus posts asociados para mantener la integridad.
-        /// </remarks>
-        /// <param name="id">Identificador único del cliente a eliminar.</param>
-        /// <returns><c>true</c> si la operación fue exitosa; <c>false</c> si el cliente no fue encontrado.</returns>
-        bool Delete(int id);
+        /// <param name="id">Identificador único del cliente.</param>
+        /// <param name="dto">Nuevos datos para actualizar.</param>
+        /// <returns>Una respuesta con la entidad actualizada.</returns>
+        Task<ResponseApi<Customer>> Update(int id, CustomerUpdate dto);
+
+        /// <summary>
+        /// Elimina un cliente y sus dependencias asociadas.
+        /// </summary>
+        /// <param name="id">ID del cliente a eliminar.</param>
+        /// <returns>Una respuesta indicando si la operación fue exitosa.</returns>
+        Task<ResponseApi<bool>> Delete(int id);
     }
 }

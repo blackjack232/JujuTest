@@ -3,7 +3,6 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging.Console;
 using Serilog;
 using System;
 using System.IO;
@@ -21,10 +20,10 @@ namespace ProjectAPI.API
         public static void Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug() 
-                .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning) 
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
                 .Enrich.FromLogContext()
-                .WriteTo.Console() 
+                .WriteTo.Console()
                 .WriteTo.Debug()
                 .CreateLogger();
 

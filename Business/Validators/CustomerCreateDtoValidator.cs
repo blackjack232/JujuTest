@@ -1,0 +1,16 @@
+﻿using Business.Constants;
+using Business.Dtos.Request;
+using FluentValidation;
+
+namespace Business.Validators
+{
+    public class CustomerCreateDtoValidator : AbstractValidator<CustomerCreate>
+    {
+        public CustomerCreateDtoValidator()
+        {
+            RuleFor(x => x.Name)
+                .NotEmpty().WithMessage(AppMessages.CustomerNameRequired)
+                .MaximumLength(100).WithMessage(AppMessages.CustomerNameMaxLength);
+        }
+    }
+}

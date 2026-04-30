@@ -1,12 +1,14 @@
 ﻿using Business.Constants;
-using Business.Dtos;
+using Business.Dtos.Request;
 using Business.Interfaces;
 using DataAccess.Data;
 using DataAccess.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Business.Services
 {
@@ -29,92 +31,114 @@ namespace Business.Services
             _logger = logger;
         }
 
-        public IEnumerable<Customer> GetAll()
+        /// <summary>
+        /// Obtiene todos los clientes registrados en el sistema de forma asíncrona.
+        /// </summary>
+        public async Task<ResponseApi<IEnumerable<Customer>>> GetAll()
         {
             _logger.LogInformation(AppMessages.CustomerGetAllLog);
-            return _customerRepo.GetAll.ToList();
+            var data = await _customerRepo.GetAll.ToListAsync();
+            return new ResponseApi<IEnumerable<Customer>>(data, AppMessages.CustomerListSuccess);
         }
 
-        public Customer Create(CustomerCreateDto dto)
+        /// <summary>
+        /// Obtiene una respuesta paginada de clientes utilizando constantes globales.
+        /// </summary>
+        public async Task<ResponseApi<PagedResponse<Customer>>> GetPagedCostumersAsync(int page, int size)
+        {
+            var query = _customerRepo.GetAll;
+            int totalRecords = await query.CountAsync();
+
+            var data = await query
+                .OrderBy(c => c.CustomerId)
+                .Skip((page - 1) * size)
+                .Take(size)
+                .ToListAsync();
+
+            var pagedData = new PagedResponse<Customer>
+            {
+                Data = data,
+                PageNumber = page,
+                PageSize = size,
+                TotalRecords = totalRecords
+            };
+
+            return new ResponseApi<PagedResponse<Customer>>(pagedData, AppMessages.PaginationSuccess);
+        }
+
+        /// <summary>
+        /// Crea un nuevo cliente validando unicidad mediante AppMessages.
+        /// </summary>
+        public async Task<ResponseApi<Customer>> Create(CustomerCreate dto)
         {
             try
             {
-                if (_customerRepo.GetAll.Any(c => c.Name.ToLower().Trim() == dto.Name.ToLower().Trim()))
+                var normalizedName = dto.Name?.Trim();
+
+                if (await _customerRepo.GetAll.AnyAsync(c => c.Name == normalizedName))
                 {
                     _logger.LogWarning(AppMessages.CustomerExistsWarning, dto.Name);
-                    throw new InvalidOperationException(AppMessages.CustomerExists);
+                    return new ResponseApi<Customer>(AppMessages.CustomerExists);
                 }
 
                 var entity = new Customer { Name = dto.Name };
-                var result = _customerRepo.Create(entity);
+                var result = await _customerRepo.Create(entity);
 
                 _logger.LogInformation(AppMessages.CustomerCreatedLog, result.Name, result.CustomerId);
-                return result;
-            }
-            catch (InvalidOperationException) { throw; }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, AppMessages.CustomerError);
-                throw;
-            }
-        }
-
-        public Customer Update(int id, CustomerUpdateDto dto)
-        {
-            try
-            {
-                var original = _customerRepo.FindById(id);
-
-                if (original == null)
-                {
-                    _logger.LogWarning(AppMessages.CustomerNotFoundWarning, id);
-                    throw new KeyNotFoundException(AppMessages.CustomerNotFound);
-                }
-
-                original.Name = dto.Name;
-                var result = _customerRepo.Update(original, original, out _);
-
-                _logger.LogInformation(AppMessages.CustomerUpdateLog, id);
-                return result;
-            }
-            catch (Exception ex) when (!(ex is KeyNotFoundException))
-            {
-                _logger.LogError(ex, AppMessages.CustomerError);
-                throw;
-            }
-        }
-
-        public bool Delete(int id)
-        {
-            try
-            {
-                var customer = _customerRepo.FindById(id);
-                if (customer == null)
-                {
-                    _logger.LogWarning(AppMessages.CustomerNotFoundWarning, id);
-                    return false;
-                }
-
-                var associatedPosts = _postRepo.GetAll.Where(p => p.CustomerId == id).ToList();
-
-                if (associatedPosts.Any())
-                {
-                    _logger.LogInformation(AppMessages.CustomerDeletePostsLog, associatedPosts.Count, id);
-                    foreach (var post in associatedPosts)
-                    {
-                        _postRepo.Delete(post);
-                    }
-                }
-
-                _customerRepo.Delete(customer);
-                _logger.LogInformation(AppMessages.CustomerDeleteLog, id);
-                return true;
+                return new ResponseApi<Customer>(result, AppMessages.CustomerCreatedSuccess);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, AppMessages.CustomerError);
-                throw;
+                return new ResponseApi<Customer>(AppMessages.InternalServerError);
             }
+        }
+
+        /// <summary>
+        /// Actualiza un cliente existente manejando mensajes de error centralizados.
+        /// </summary>
+        public async Task<ResponseApi<Customer>> Update(int id, CustomerUpdate dto)
+        {
+            var original = await _customerRepo.FindById(id);
+
+            if (original == null)
+            {
+                _logger.LogWarning(AppMessages.CustomerNotFoundWarning, id);
+                return new ResponseApi<Customer>(AppMessages.CustomerNotFound);
+            }
+
+            original.Name = dto.Name;
+            var result = await _customerRepo.Update(original, original);
+
+            _logger.LogInformation(AppMessages.CustomerUpdateLog, id);
+            return new ResponseApi<Customer>(result, AppMessages.CustomerUpdatedSuccess);
+        }
+
+        /// <summary>
+        /// Elimina un cliente y limpia publicaciones asociadas usando AppMessages para el log.
+        /// </summary>
+        public async Task<ResponseApi<bool>> Delete(int id)
+        {
+            var customer = await _customerRepo.FindById(id);
+            if (customer == null)
+            {
+                _logger.LogWarning(AppMessages.CustomerNotFoundWarning, id);
+                return new ResponseApi<bool>(AppMessages.CustomerNotFound);
+            }
+
+            var associatedPosts = await _postRepo.GetAll
+                .Where(p => p.CustomerId == id)
+                .ToListAsync();
+
+            foreach (var post in associatedPosts)
+            {
+                await _postRepo.Delete(post);
+            }
+
+            await _customerRepo.Delete(customer);
+            _logger.LogInformation(AppMessages.CustomerDeleteLog, id);
+
+            return new ResponseApi<bool>(true, AppMessages.CustomerDeletedSuccess);
         }
     }
 }

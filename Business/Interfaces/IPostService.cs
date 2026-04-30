@@ -1,36 +1,38 @@
-﻿using Business.Dtos;
+﻿using Business.Dtos.Request;
 using DataAccess.Data;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace Business.Interfaces
 {
     /// <summary>
-    /// Interfaz para la gestión de publicaciones (Posts).
+    /// Interfaz para la gestión de publicaciones (Posts) de forma asíncrona.
     /// Define las reglas de negocio para la creación y validación de contenido.
     /// </summary>
     public interface IPostService
     {
         /// <summary>
-        /// Obtiene todos los posts de la base de datos.
+        /// Obtiene todos los posts de la base de datos de forma asíncrona.
         /// </summary>
-        /// <returns>IQueryable para permitir filtrado eficiente.</returns>
-        IQueryable<Post> GetAll();
+        /// <returns>Una tarea que representa la operación, con una colección de entidades <see cref="Post"/>.</returns>
+        Task<ResponseApi<PagedResponse<Post>>> GetAllPagedAsync(int page, int size);
 
         /// <summary>
         /// Crea un post aplicando validaciones de usuario, truncado de texto
-        /// y categorización automática por tipo (Punto 3).
+        /// y categorización automática por tipo de forma asíncrona (Punto 3).
         /// </summary>
-        /// <param name="entity">Entidad Post a crear.</param>
-        /// <returns>El post creado con las modificaciones aplicadas.</returns>
-        Post Create(PostCreateDto entity);
+        /// <param name="entity">DTO con la información para crear el Post.</param>
+        /// <returns>Una tarea que representa la operación. El resultado contiene el post creado con las modificaciones aplicadas.</returns>
+        Task<ResponseApi<Post>> Create(PostCreate dto);
 
         /// <summary>
-        /// Permite la creación de múltiples posts en una sola transacción (Punto 5).
+        /// Permite la creación de múltiples posts de forma masiva y asíncrona (Punto 5).
         /// </summary>
-        /// <param name="entities">Lista de posts a procesar.</param>
-        void CreateBulk(List<PostCreateDto> entities);
+        /// <remarks>
+        /// Se utiliza Task para permitir que el procesamiento por lotes no bloquee el hilo principal.
+        /// </remarks>
+        /// <param name="entities">Lista de DTOs de posts a procesar.</param>
+        /// <returns>Una tarea que representa la operación de creación masiva.</returns>
+        Task<ResponseApi<bool>> CreateBulk(List<PostCreate> entities);
     }
 }

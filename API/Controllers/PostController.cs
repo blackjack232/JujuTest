@@ -1,18 +1,15 @@
-﻿
-
-using Business.Constants;
-using Business.Dtos;
+﻿using Business.Constants;
+using Business.Dtos.Request;
+using Business.Helpers;
 using Business.Interfaces;
-using DataAccess.Data;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace API.Controllers
 {
     /// <summary>
     /// Controlador para la gestión de Publicaciones (Posts).
-    /// Maneja la lógica de creación individual y masiva bajo reglas de negocio específicas.
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
@@ -20,67 +17,65 @@ namespace API.Controllers
     {
         private readonly IPostService _service;
 
-        /// <summary>
-        /// Constructor del controlador de Publicaciones.
-        /// </summary>
-        /// <param name="service">Interfaz del servicio de publicaciones inyectada.</param>
-        public PostController(IPostService service) => _service = service;
-
-        /// <summary>
-        /// Crea una nueva publicación aplicando validaciones de contenido.
-        /// </summary>
-        /// <remarks>
-        /// Reglas aplicadas:
-        /// 1. Valida que el CustomerId exista.
-        /// 2. Si el cuerpo supera los 20 caracteres, se trunca a 97 y se añade "...".
-        /// 3. Asigna categorías automáticas: 1-Farándula, 2-Política, 3-Futbol.
-        /// </remarks>
-        /// <param name="entity">DTO con la información de la publicación.</param>
-        /// <returns>La entidad Post creada y procesada.</returns>
-        /// <response code="200">Retorna el objeto creado exitosamente.</response>
-        /// <response code="400">Si el usuario no existe o hay errores de validación.</response>
-        [HttpPost]
-        public IActionResult Create([FromBody] PostCreateDto entity)
+        public PostController(IPostService service)
         {
-            try
-            {
-                return Ok(_service.Create(entity));
-            }
-            catch (System.Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            _service = service;
         }
 
         /// <summary>
-        /// Realiza la creación masiva de múltiples publicaciones (Punto 5).
+        /// Crea una nueva publicación aplicando validaciones y reglas de negocio.
         /// </summary>
         /// <remarks>
-        /// Este método itera sobre una lista de DTOs y aplica las reglas de negocio individualmente a cada uno.
+        /// Reglas: Truncado de texto > 20 caracteres y categorización automática por Type.
         /// </remarks>
-        /// <param name="dtos">Lista de objetos PostCreateDto a procesar.</param>
-        /// <returns>Mensaje de éxito con la cantidad de registros procesados.</returns>
-        /// <response code="200">Si todos los registros se procesaron correctamente.</response>
-        /// <response code="400">Si la lista es nula, vacía o ocurre un error en el proceso.</response>
-        [HttpPost("Bulk")]
-        public IActionResult CreateBulk([FromBody] List<PostCreateDto> dtos)
+        /// <param name="entity">DTO del post.</param>
+        /// <response code="201">Post creado con éxito.</response>
+        /// <response code="400">Error de validación o cliente no existe.</response>
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] PostCreate entity)
         {
-            if (dtos == null || dtos.Count == 0)
-                return BadRequest(AppMessages.ValidationError);
+            var response = await _service.Create(entity);
 
-            try
-            {
-                foreach (var dto in dtos)
-                {
-                    _service.Create(dto);
-                }
+            if (!response.Succeeded)
+                return BadRequest(response);
 
-                return Ok(string.Format(AppMessages.BulkSuccess, dtos.Count));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return StatusCode(201, response);
+        }
+
+        /// <summary>
+        /// Realiza la creación masiva de publicaciones.
+        /// </summary>
+        /// <param name="dtos">Lista de objetos a procesar.</param>
+        /// <response code="200">Proceso masivo finalizado.</response>
+        /// <response code="400">Lista vacía o error en el proceso.</response>
+        [HttpPost("Bulk")]
+        public async Task<IActionResult> CreateBulk([FromBody] List<PostCreate> dtos)
+        {
+            var response = await _service.CreateBulk(dtos);
+
+            if (!response.Succeeded)
+                return BadRequest(response);
+
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Obtiene todas las publicaciones de forma paginada.
+        /// </summary>
+        /// <param name="page">Número de página (Por defecto 1).</param>
+        /// <param name="size">Registros por página (Por defecto 10).</param>
+        /// <returns>Objeto ResponseApi con la lista paginada de posts.</returns>
+        [HttpGet]
+        public async Task<IActionResult> Get([FromQuery] int page = AppConstants.DefaultPageNumber, [FromQuery] int size = AppConstants.DefaultPageSize)
+        {
+            var (validPage, validSize) = PaginationHelper.Validate(page, size);
+
+            var response = await _service.GetAllPagedAsync(validPage, validSize);
+
+            if (!response.Succeeded)
+                return StatusCode(500, response);
+
+            return Ok(response);
         }
     }
 }

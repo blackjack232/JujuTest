@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DataAccess.Data
+﻿namespace DataAccess.Data
 {
     public partial class Post
     {

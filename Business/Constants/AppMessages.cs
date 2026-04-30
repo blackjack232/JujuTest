@@ -27,5 +27,28 @@
         // En Business.Constants.AppMessages
         public const string HostStartingLog = "Iniciando el servidor de la API...";
         public const string HostFatalError = "El servidor se detuvo debido a un fallo crítico.";
+
+        // Mensajes de Validación para Clientes
+        public const string CustomerNameRequired = "El nombre del cliente es obligatorio.";
+        public const string CustomerNameMaxLength = "El nombre del cliente no puede exceder los 100 caracteres.";
+
+        // Mensajes de Validación para Posts
+        public const string PostCustomerRequired = "Debe seleccionar un cliente válido para la publicación.";
+        public const string PostTitleRequired = "El título de la publicación es obligatorio.";
+        public const string PostTitleMaxLength = "El título no puede superar los 100 caracteres.";
+        public const string PostBodyRequired = "El contenido de la publicación (Body) no puede estar vacío.";
+        public const string PostTypeRange = "El tipo de post debe ser: 1 (Farándula), 2 (Política) o 3 (Futbol).";
+
+
+        // Mensajes de Éxito (Para ResponseApi.Message)
+        public const string CustomerListSuccess = "Lista de clientes recuperada exitosamente.";
+        public const string CustomerCreatedSuccess = "El cliente ha sido registrado correctamente.";
+        public const string CustomerUpdatedSuccess = "Los datos del cliente se actualizaron con éxito.";
+        public const string CustomerDeletedSuccess = "Cliente y sus publicaciones asociadas han sido eliminados.";
+        public const string PaginationSuccess = "Consulta paginada completada.";
+        public const string PostCreatedSuccess = "El post ha sido creado correctamente.";
+
+        // Mensajes de Error de Negocio (Para ResponseApi.Message)
+        public const string InternalServerError = "Ocurrió un error inesperado en el servidor. Intente más tarde.";
     }
 }
