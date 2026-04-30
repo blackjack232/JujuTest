@@ -1,6 +1,5 @@
 # JujuTest
 Prueba tecnica JUJU
-Aquí tienes el contenido en texto plano para que lo copies directamente a tu archivo README.md.
 
 ProjectAPI - Gestión de Publicaciones y Clientes
 Esta es una API RESTful desarrollada con .NET Core 2.1 diseñada para gestionar la interacción entre clientes y sus publicaciones. El sistema implementa una arquitectura robusta, respuestas estandarizadas y un enfoque orientado a pruebas unitarias.
