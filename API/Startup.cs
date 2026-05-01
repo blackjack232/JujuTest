@@ -1,7 +1,6 @@
 ﻿using Business.Common.Interfaces;
 using Business.Common.Validators;
 using Business.Services;
-using DataAccess;
 using DataAccess.Data;
 using DataAccess.Interfaces;
 using DataAccess.Repositories;
@@ -37,8 +36,7 @@ namespace ProjectAPI.API
             services.AddDbContext<JujuTestContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("Development")));
 
-            // Inyección de Repositorios Genéricos
-            services.AddScoped(typeof(IBaseModel<>), typeof(BaseModel<>));
+            services.AddScoped(typeof(IBaseModel<>), typeof(BaseRepository<>));
 
             // Inyección de Servicios de Negocio
             services.AddScoped<ICustomerService, CustomerService>();
