@@ -19,6 +19,11 @@ graph TD
 ```
 
 ---
+## 🗄️ Modelo de Base de Datos (SQL Server)
+
+![Modelo SQL Server](./docs/sql-model.png)
+
+---
 
 ## 🔍 Desglose de Componentes
 
