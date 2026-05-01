@@ -1,5 +1,4 @@
-﻿using Business;
-using Business.Common.Interfaces;
+﻿using Business.Common.Interfaces;
 using Business.Common.Validators;
 using Business.Services;
 using DataAccess;
@@ -33,7 +32,7 @@ namespace ProjectAPI.API
         {
             //Servicios                      
             services.AddScoped<JujuTestContext, JujuTestContext>();
-       
+
             //Agregar cadena de conexion al contexto
             services.AddDbContext<JujuTestContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("Development")));
@@ -77,13 +76,13 @@ namespace ProjectAPI.API
                     return new BadRequestObjectResult(response);
                 };
             });
-        
 
-        // ======== CONFIGURACIÓN DE SWAGGER =========
-        services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new Info { Title = "TestAPI", Version = "v1" });
-            });
+
+            // ======== CONFIGURACIÓN DE SWAGGER =========
+            services.AddSwaggerGen(c =>
+                {
+                    c.SwaggerDoc("v1", new Info { Title = "TestAPI", Version = "v1" });
+                });
             services.AddHttpContextAccessor();
             services.AddSession();
         }

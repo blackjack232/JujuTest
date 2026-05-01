@@ -1,6 +1,6 @@
 ﻿using Business.Common.Constants;
-using Business.Common.Dtos.Request;
 using Business.Common.Interfaces;
+using Business.Dtos.Request;
 using DataAccess.Data;
 using DataAccess.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -127,7 +127,7 @@ namespace Business.Services
 
                 var entity = new Customer { Name = dto.Name };
                 await _customerRepository.AddAsync(entity);
-               
+
 
                 _logger.LogInformation(AppMessages.CustomerCreatedLog, entity.Name, entity.CustomerId);
                 return new ResponseApi<Customer>(entity, AppMessages.CustomerCreatedSuccess);
@@ -165,7 +165,7 @@ namespace Business.Services
 
                 original.Name = dto.Name;
                 await _customerRepository.UpdateAsync(original);
-                
+
 
                 _logger.LogInformation(AppMessages.CustomerUpdateLog, id);
                 return new ResponseApi<Customer>(original, AppMessages.CustomerUpdatedSuccess);
@@ -194,7 +194,7 @@ namespace Business.Services
                 }
 
                 await _customerRepository.RemoveWithPostsAsync(id);
-             
+
                 _logger.LogInformation(AppMessages.CustomerDeleteLog, id);
                 return new ResponseApi<bool>(true, AppMessages.CustomerDeletedSuccess);
             }

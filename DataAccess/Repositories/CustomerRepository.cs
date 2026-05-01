@@ -1,7 +1,6 @@
 ﻿using DataAccess.Data;
 using DataAccess.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,7 +29,7 @@ namespace DataAccess.Repositories
         public async Task AddAsync(Customer entity)
         {
             await Create(entity);
-            
+
         }
 
         /// <summary>

@@ -48,7 +48,7 @@
         public const string CustomerDeletedSuccess = "Cliente y sus publicaciones asociadas han sido eliminados.";
         public const string PaginationSuccess = "Consulta paginada completada.";
         public const string PostCreatedSuccess = "El post ha sido creado correctamente.";
-    
+
 
         // Mensajes de Error de Negocio (Para ResponseApi.Message)
         public const string InternalServerError = "Ocurrió un error inesperado en el servidor. Intente más tarde.";

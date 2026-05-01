@@ -1,5 +1,5 @@
 ﻿using Business.Common.Constants;
-using Business.Common.Dtos.Request;
+using Business.Dtos.Request;
 using FluentValidation;
 
 namespace Business.Common.Validators

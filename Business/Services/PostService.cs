@@ -1,6 +1,6 @@
 ﻿using Business.Common.Constants;
-using Business.Common.Dtos.Request;
 using Business.Common.Interfaces;
+using Business.Dtos.Request;
 using DataAccess.Data;
 using DataAccess.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +28,7 @@ namespace Business.Services
         /// <param name="postRepo">Repositorio para la persistencia de publicaciones.</param>
         /// <param name="customerRepo">Repositorio para la verificación de existencia de clientes.</param>
         /// <param name="logger">Instancia de ILogger para el registro de eventos.</param>
-        public PostService(IPostRepository postRepo, ICustomerRepository customerRepo , ILogger<PostService> logger)
+        public PostService(IPostRepository postRepo, ICustomerRepository customerRepo, ILogger<PostService> logger)
         {
             _postRepo = postRepo;
             _customerRepo = customerRepo;
@@ -194,7 +194,7 @@ namespace Business.Services
                 int totalRecords = await query.CountAsync();
 
                 var data = await query
-                    .OrderByDescending(p => p.PostId) 
+                    .OrderByDescending(p => p.PostId)
                     .Skip((page - 1) * size)
                     .Take(size)
                     .ToListAsync();
@@ -263,7 +263,7 @@ namespace Business.Services
                 }
 
                 await _postRepo.DeleteAsync(exists);
-                
+
 
                 _logger.LogInformation("Post {0} eliminado con éxito.", id);
                 return new ResponseApi<bool>(true, AppMessages.PostDeleteSuccess);

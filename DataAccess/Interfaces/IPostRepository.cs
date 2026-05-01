@@ -36,6 +36,6 @@ namespace DataAccess.Interfaces
         /// <param name="id"></param>
         /// <returns></returns>
         Task DeleteAsync(Post id);
-        
+
     }
 }

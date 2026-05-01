@@ -18,10 +18,10 @@
         public const int DefaultPageSize = 10;
         public const int MaxPageSize = 100;
 
-       
+
         public const int CustomerNameMaxLength = 100;
         public const int StatusCreated = 201;
-        public const int StatusInternalServer= 500;
+        public const int StatusInternalServer = 500;
 
     }
 }
