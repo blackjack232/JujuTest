@@ -2,7 +2,7 @@
 using Business.Dtos.Request;
 using FluentValidation;
 
-namespace Business.Common.Validators
+namespace Business.Validators
 {
     public class PostCreateDtoValidator : AbstractValidator<PostCreate>
     {

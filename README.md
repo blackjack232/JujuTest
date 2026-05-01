@@ -107,12 +107,24 @@ Implementación de **Repository Pattern** sobre **Entity Framework Core** para a
 ## 📂 Estructura del Repositorio
 
 ```plaintext
-📦 JujuApi
- ┣ 📂 API (Controladores y Configuración)
- ┣ 📂 Business (Servicios, DTOs y Reglas de Negocio)
- ┃ ┣ 📂 Common (Constants, Helpers, Interfaces)
- ┃ ┗ 📂 Services (Implementaciones)
- ┗ 📂 DataAccess (Contexto, Entidades y Repositorios)
+📦 JujuApi (ProjectAPI)
+ ┣ 📂 API
+ ┃ ┗ 📂 Controllers (Controladores de la API)
+ ┣ 📂 Business
+ ┃ ┣ 📂 Common (Constantes, Helpers, Interfaces)
+ ┃ ┣ 📂 Dtos (Modelos de entrada/salida)
+ ┃ ┣ 📂 Services (Lógica de negocio e implementaciones)
+ ┃ ┗ 📂 Validators (Reglas de validación con FluentValidation)
+ ┣ 📂 DataAccess
+ ┃ ┣ 📂 Context (Configuración de Entity Framework)
+ ┃ ┣ 📂 Data (Entidades de base de datos)
+ ┃ ┗ 📂 Repositories (Acceso a datos)
+ ┃ ┗ 📂 Interfaces (Interfaces repositorio)
+ ┗ 📂 Tests
+   ┣ 📂 Api.Tests
+   ┃ ┗ 📂 ControllerTests (Pruebas unitarias para controladores)
+   ┗ 📂 Business.Tests
+     ┗ 📂 ServiceTests (Pruebas unitarias para servicios de negocio)
 ```
 
 ---

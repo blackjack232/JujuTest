@@ -1,7 +1,7 @@
 ﻿using Business.Common.Interfaces;
-using Business.Common.Validators;
 using Business.Services;
-using DataAccess.Data;
+using Business.Validators;
+using DataAccess.Context;
 using DataAccess.Interfaces;
 using DataAccess.Repositories;
 using FluentValidation.AspNetCore;
