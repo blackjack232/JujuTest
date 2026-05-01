@@ -19,6 +19,28 @@ graph TD
 ```
 
 ---
+
+## 💎 Patrones de Diseño Implementados
+
+El sistema garantiza la escalabilidad y el desacoplamiento mediante la aplicación de patrones probados en la industria:
+
+1. **Repository Pattern**
+   * **Implementación:** Se utiliza una clase `BaseRepository<TEntity>` que centraliza las operaciones de acceso a datos.
+   * **Beneficio:** Abstrae la lógica de persistencia, permitiendo que los servicios operen sin conocer los detalles de Entity Framework Core.
+
+2. **Unit of Work (Implícito)**
+   * **Implementación:** Se gestiona a través del `DbContext` de EF Core.
+   * **Beneficio:** Asegura la atomicidad de las operaciones. Por ejemplo, en el proceso de **Bulk Insert**, los cambios solo se confirman tras validar todo el lote mediante `SaveChangesAsync`.
+
+3. **Operation Result Pattern**
+   * **Implementación:** Uso de la clase genérica `ResponseApi<T>` para todas las respuestas de los controladores.
+   * **Beneficio:** Estandariza la comunicación con el cliente, proporcionando metadatos sobre el éxito de la operación y mensajes de error claros provenientes de `AppMessages`.
+
+4. **DTO (Data Transfer Objects) y Separación de Responsabilidades**
+   * **Implementación:** Uso de objetos específicos para la entrada de datos en comandos `POST` y la salida en consultas `GET`.
+   * **Beneficio:** Evita la exposición directa de las entidades de la base de datos, mejorando la seguridad y permitiendo transformar datos (como el truncado de strings) antes de ser devueltos.
+---
+
 ## 🗄️ Modelo de Base de Datos (SQL Server)
 
 ![Modelo SQL Server](./docs/sql-model.png)
