@@ -1,8 +1,8 @@
-﻿using Business.Constants;
-using Business.Dtos.Request;
+﻿using Business.Common.Constants;
+using Business.Common.Dtos.Request;
 using FluentValidation;
 
-namespace Business.Validators
+namespace Business.Common.Validators
 {
     public class CustomerCreateDtoValidator : AbstractValidator<CustomerCreate>
     {

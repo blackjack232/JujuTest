@@ -1,7 +1,7 @@
 ﻿using API.Controllers;
-using Business.Constants;
-using Business.Dtos.Request;
-using Business.Interfaces;
+using Business.Common.Constants;
+using Business.Common.Dtos.Request;
+using Business.Common.Interfaces;
 using DataAccess.Data;
 using Microsoft.AspNetCore.Mvc;
 using Moq;

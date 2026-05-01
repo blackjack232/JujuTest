@@ -12,10 +12,20 @@ public class ResponseApi<T>
         Succeeded = true;
         Message = message;
         Data = data;
+        Errors = new List<string>();
     }
+
     public ResponseApi(string message)
     {
         Succeeded = false;
         Message = message;
+        Errors = new List<string>();
+    }
+
+    public ResponseApi(List<string> errors, string message)
+    {
+        Succeeded = false;
+        Message = message;
+        Errors = errors;
     }
 }

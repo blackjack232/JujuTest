@@ -1,4 +1,4 @@
-﻿using Business.Constants;
+﻿using Business.Common.Constants;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;

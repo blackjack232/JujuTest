@@ -1,5 +1,5 @@
-﻿using Business.Constants;
-using Business.Dtos.Request;
+﻿using Business.Common.Constants;
+using Business.Common.Dtos.Request;
 using Business.Services;
 using DataAccess.Data;
 using DataAccess.Interfaces;
@@ -16,15 +16,15 @@ namespace Project.Tests.ServiceTests
 {
     public class CustomerServiceTests
     {
-        private readonly Mock<IBaseModel<Customer>> _customerRepoMock;
-        private readonly Mock<IBaseModel<Post>> _postRepoMock;
+        private readonly Mock<ICustomerRepository> _customerRepoMock;
+        private readonly Mock<IPostRepository> _postRepoMock;
         private readonly Mock<ILogger<CustomerService>> _loggerMock;
         private readonly CustomerService _service;
 
         public CustomerServiceTests()
         {
-            _customerRepoMock = new Mock<IBaseModel<Customer>>();
-            _postRepoMock = new Mock<IBaseModel<Post>>();
+            _customerRepoMock = new Mock<ICustomerRepository>();
+            _postRepoMock = new Mock<IPostRepository>();
             _loggerMock = new Mock<ILogger<CustomerService>>();
 
             _service = new CustomerService(

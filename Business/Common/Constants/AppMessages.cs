@@ -1,4 +1,4 @@
-﻿namespace Business.Constants
+﻿namespace Business.Common.Constants
 {
     public static class AppMessages
     {
@@ -38,6 +38,7 @@
         public const string PostTitleMaxLength = "El título no puede superar los 100 caracteres.";
         public const string PostBodyRequired = "El contenido de la publicación (Body) no puede estar vacío.";
         public const string PostTypeRange = "El tipo de post debe ser: 1 (Farándula), 2 (Política) o 3 (Futbol).";
+        public const string PostTypeInvalidWarning = "Omitiendo Post: Tipo {0} no válido.";
 
 
         // Mensajes de Éxito (Para ResponseApi.Message)
@@ -47,8 +48,16 @@
         public const string CustomerDeletedSuccess = "Cliente y sus publicaciones asociadas han sido eliminados.";
         public const string PaginationSuccess = "Consulta paginada completada.";
         public const string PostCreatedSuccess = "El post ha sido creado correctamente.";
+    
 
         // Mensajes de Error de Negocio (Para ResponseApi.Message)
         public const string InternalServerError = "Ocurrió un error inesperado en el servidor. Intente más tarde.";
+        public const string CustomerDuplicateNameWarning = "Intento de actualización con nombre duplicado: {Name}";
+
+        // Mensajes para GetById y Delete
+        public const string PostNotFound = "La publicación con ID {0} no existe.";
+        public const string PostGetSuccess = "Publicación recuperada con éxito.";
+        public const string PostDeleteSuccess = "La publicación ha sido eliminada correctamente.";
+        public const string PostDeleteError = "Error al intentar eliminar la publicación.";
     }
 }

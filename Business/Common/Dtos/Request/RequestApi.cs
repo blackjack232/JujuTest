@@ -1,4 +1,4 @@
-﻿namespace Business.Dtos.Request
+﻿namespace Business.Common.Dtos.Request
 {
     public class CustomerCreate
     {

@@ -1,9 +1,9 @@
-﻿using Business.Dtos.Request;
+﻿using Business.Common.Dtos.Request;
 using DataAccess.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Business.Interfaces
+namespace Business.Common.Interfaces
 {
     /// <summary>
     /// Interfaz para el servicio de gestión de clientes.
@@ -24,6 +24,11 @@ namespace Business.Interfaces
         /// <param name="size">Cantidad de registros por página.</param>
         /// <returns>Una respuesta estandarizada con los datos de paginación.</returns>
         Task<ResponseApi<PagedResponse<Customer>>> GetPagedCostumersAsync(int page, int size);
+
+        /// <summary>
+        /// Obtiene un cliente, busca por ID.
+        /// </summary>
+        Task<ResponseApi<CustomerCreate>> GetByIdAsync(int id);
 
         /// <summary>
         /// Crea un nuevo cliente en el sistema.

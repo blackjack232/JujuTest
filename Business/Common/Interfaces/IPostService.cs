@@ -1,9 +1,9 @@
-﻿using Business.Dtos.Request;
+﻿using Business.Common.Dtos.Request;
 using DataAccess.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Business.Interfaces
+namespace Business.Common.Interfaces
 {
     /// <summary>
     /// Interfaz para la gestión de publicaciones (Posts) de forma asíncrona.
@@ -33,6 +33,19 @@ namespace Business.Interfaces
         /// </remarks>
         /// <param name="entities">Lista de DTOs de posts a procesar.</param>
         /// <returns>Una tarea que representa la operación de creación masiva.</returns>
-        Task<ResponseApi<bool>> CreateBulk(List<PostCreate> entities);
+        Task<ResponseApi<bool>> CreateBulk(IEnumerable<PostCreate> entities);
+
+        /// <summary>
+        /// Obtiene un post por su ID de forma asíncrona.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        Task<ResponseApi<PostCreate>> GetByIdAsync(int id);
+        /// <summary>
+        /// Elimina un post por su ID de forma asíncrona.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        Task<ResponseApi<bool>> Delete(int id);
     }
 }

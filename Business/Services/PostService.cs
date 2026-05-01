@@ -1,6 +1,6 @@
-﻿using Business.Constants;
-using Business.Dtos.Request;
-using Business.Interfaces;
+﻿using Business.Common.Constants;
+using Business.Common.Dtos.Request;
+using Business.Common.Interfaces;
 using DataAccess.Data;
 using DataAccess.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -18,8 +18,8 @@ namespace Business.Services
     /// </summary>
     public class PostService : IPostService
     {
-        private readonly IBaseModel<Post> _postRepo;
-        private readonly IBaseModel<Customer> _customerRepo;
+        private readonly IPostRepository _postRepo;
+        private readonly ICustomerRepository _customerRepo;
         private readonly ILogger<PostService> _logger;
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Business.Services
         /// <param name="postRepo">Repositorio para la persistencia de publicaciones.</param>
         /// <param name="customerRepo">Repositorio para la verificación de existencia de clientes.</param>
         /// <param name="logger">Instancia de ILogger para el registro de eventos.</param>
-        public PostService(IBaseModel<Post> postRepo, IBaseModel<Customer> customerRepo, ILogger<PostService> logger)
+        public PostService(IPostRepository postRepo, ICustomerRepository customerRepo , ILogger<PostService> logger)
         {
             _postRepo = postRepo;
             _customerRepo = customerRepo;
@@ -71,9 +71,9 @@ namespace Business.Services
         private Post MapPost(PostCreate dto)
         {
             string processedBody = dto.Body;
-            if (!string.IsNullOrEmpty(dto.Body) && dto.Body.Length > 20)
+            if (!string.IsNullOrEmpty(dto.Body) && dto.Body.Length > AppConstants.MinBodyThreshold)
             {
-                processedBody = dto.Body.Substring(0, Math.Min(dto.Body.Length, 97)) + "...";
+                processedBody = dto.Body.Substring(0, Math.Min(dto.Body.Length, AppConstants.MaxBodyLength)) + AppConstants.Ellipsis;
             }
             switch (dto.Type)
             {
@@ -99,30 +99,83 @@ namespace Business.Services
         }
 
         /// <summary>
-        /// Realiza el procesamiento y creación de múltiples publicaciones de forma masiva y asíncrona (Punto 5).
+        /// Realiza el procesamiento y creación de múltiples publicaciones de forma masiva y asíncrona.
         /// </summary>
         /// <remarks>
         /// Este método garantiza que cada elemento de la lista pase por las mismas 
         /// reglas de validación y negocio que una creación individual.
         /// </remarks>
         /// <param name="entities">Lista de DTOs de tipo <see cref="PostCreate"/>.</param>
-        public async Task<ResponseApi<bool>> CreateBulk(List<PostCreate> entities)
+        public async Task<ResponseApi<bool>> CreateBulk(IEnumerable<PostCreate> entities)
         {
             if (entities == null || !entities.Any())
                 return new ResponseApi<bool>(AppMessages.ValidationError);
 
-            _logger.LogInformation(AppMessages.PostBulkStarted, entities.Count);
-            int successCount = 0;
-
-            foreach (var postDto in entities)
+            try
             {
-                var response = await Create(postDto);
-                if (response.Succeeded) successCount++;
-            }
+                _logger.LogInformation(AppMessages.PostBulkStarted, entities.Count());
+                var (postsToInsert, skippedCount) = await ProcessEntities(entities);
+                if (postsToInsert.Any())
+                {
+                    await ExecuteBulkInsert(postsToInsert);
+                }
 
-            return new ResponseApi<bool>(true, string.Format(AppMessages.PostBulkStarted, successCount));
+                string message = string.Format(AppMessages.BulkSuccess, postsToInsert.Count, skippedCount);
+                return new ResponseApi<bool>(true, message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, AppMessages.LogErrorBulk);
+                return new ResponseApi<bool>(AppMessages.InternalServerError);
+            }
         }
 
+        /// <summary>
+        /// Itera sobre las entidades, aplica validaciones y retorna las procesadas.
+        /// </summary>
+        private async Task<(List<Post> posts, int skipped)> ProcessEntities(IEnumerable<PostCreate> entities)
+        {
+            var postsToInsert = new List<Post>();
+            int skippedCount = 0;
+
+            foreach (var dto in entities)
+            {
+                if (!IsValidType(dto.Type))
+                {
+                    _logger.LogWarning(AppMessages.PostTypeInvalidWarning, dto.Type);
+                    skippedCount++;
+                    continue;
+                }
+                var customer = await _customerRepo.GetByIdAsync(dto.CustomerId);
+                if (customer == null)
+                {
+                    _logger.LogWarning(AppMessages.CustomerNotFoundWarning, dto.CustomerId);
+                    skippedCount++;
+                    continue;
+                }
+                postsToInsert.Add(MapPost(dto));
+            }
+
+            return (postsToInsert, skippedCount);
+        }
+
+        /// <summary>
+        /// Verifica si el tipo de publicación está dentro de los permitidos.
+        /// </summary>
+        private bool IsValidType(int type)
+        {
+            return type == AppConstants.TypeFarandula ||
+                   type == AppConstants.TypePolitica ||
+                   type == AppConstants.TypeFutbol;
+        }
+
+        /// <summary>
+        /// Se encarga exclusivamente de la comunicación con el repositorio.
+        /// </summary>
+        private async Task ExecuteBulkInsert(List<Post> posts)
+        {
+            await _postRepo.AddRangeAsync(posts);
+        }
         /// <summary>
         /// Expone todas las publicaciones registradas como un IQueryable de forma asíncrona.
         /// </summary>
@@ -160,6 +213,65 @@ namespace Business.Services
             {
                 _logger.LogError(ex, AppMessages.PostUpdateError);
                 return new ResponseApi<PagedResponse<Post>>(AppMessages.InternalServerError);
+            }
+        }
+        /// <summary>
+        /// Recupera una publicación específica por su identificador único de forma asíncrona.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<ResponseApi<PostCreate>> GetByIdAsync(int id)
+        {
+            try
+            {
+                var post = await _postRepo.GetByIdAsync(id);
+
+                if (post == null)
+                {
+                    _logger.LogWarning(AppMessages.PostNotFound, id);
+                    return new ResponseApi<PostCreate>(string.Format(AppMessages.PostNotFound, id));
+                }
+
+                var response = new PostCreate
+                {
+                    CustomerId = post.CustomerId,
+                    Title = post.Title,
+                    Body = post.Body,
+                    Category = post.Category,
+                    Type = post.Type
+                };
+                return new ResponseApi<PostCreate>(response, AppMessages.PostGetSuccess);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener post {0}", id);
+                return new ResponseApi<PostCreate>(AppMessages.InternalServerError);
+            }
+        }
+        /// <summary>
+        /// Elimina una publicación de la base de datos tras verificar su existencia.
+        /// </summary>
+        public async Task<ResponseApi<bool>> Delete(int id)
+        {
+            try
+            {
+                var exists = await _postRepo.GetByIdAsync(id);
+                if (exists == null)
+                {
+                    _logger.LogWarning(AppMessages.PostNotFound, id);
+                    return new ResponseApi<bool>(string.Format(AppMessages.PostNotFound, id));
+                }
+
+                await _postRepo.DeleteAsync(exists);
+                
+
+                _logger.LogInformation("Post {0} eliminado con éxito.", id);
+                return new ResponseApi<bool>(true, AppMessages.PostDeleteSuccess);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, AppMessages.PostDeleteError);
+                return new ResponseApi<bool>(AppMessages.InternalServerError);
             }
         }
     }

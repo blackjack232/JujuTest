@@ -1,6 +1,6 @@
-﻿using Business.Constants;
+﻿using Business.Common.Constants;
 
-namespace Business.Helpers
+namespace Business.Common.Helpers
 {
     public static class PaginationHelper
     {

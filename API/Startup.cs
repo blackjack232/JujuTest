@@ -1,10 +1,11 @@
 ﻿using Business;
-using Business.Interfaces;
+using Business.Common.Interfaces;
+using Business.Common.Validators;
 using Business.Services;
-using Business.Validators;
 using DataAccess;
 using DataAccess.Data;
 using DataAccess.Interfaces;
+using DataAccess.Repositories;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -14,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Swashbuckle.AspNetCore.Swagger;
+using System.Linq;
 
 namespace ProjectAPI.API
 {
@@ -31,12 +33,7 @@ namespace ProjectAPI.API
         {
             //Servicios                      
             services.AddScoped<JujuTestContext, JujuTestContext>();
-            services.AddScoped<BaseService<Customer>, BaseService<Customer>>();
-            services.AddScoped<BaseModel<Customer>, BaseModel<Customer>>();
-            services.AddScoped<BaseService<Post>, BaseService<Post>>();
-            services.AddScoped<BaseModel<Post>, BaseModel<Post>>();
-
-
+       
             //Agregar cadena de conexion al contexto
             services.AddDbContext<JujuTestContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("Development")));
@@ -47,6 +44,9 @@ namespace ProjectAPI.API
             // Inyección de Servicios de Negocio
             services.AddScoped<ICustomerService, CustomerService>();
             services.AddScoped<IPostService, PostService>();
+            // Inyección de repositorio
+            services.AddScoped<IPostRepository, PostRepository>();
+            services.AddScoped<ICustomerRepository, CustomerRepository>();
 
             services.AddLogging(loggingBuilder =>
             {
@@ -62,9 +62,25 @@ namespace ProjectAPI.API
                     // Opcional: Esto hace que las validaciones de [Attributes] de .NET también funcionen
                     fv.RunDefaultMvcValidationAfterFluentValidationExecutes = true;
                 });
+            //Intercepta y llena los errores de fluent validate para devolverlos en un formato personalizado
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory = context =>
+                {
+                    var errors = context.ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
 
-            // ======== CONFIGURACIÓN DE SWAGGER =========
-            services.AddSwaggerGen(c =>
+                    var response = new ResponseApi<object>(errors, "Se encontraron errores de validación");
+
+                    return new BadRequestObjectResult(response);
+                };
+            });
+        
+
+        // ======== CONFIGURACIÓN DE SWAGGER =========
+        services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "TestAPI", Version = "v1" });
             });

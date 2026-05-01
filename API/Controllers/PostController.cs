@@ -1,7 +1,7 @@
-﻿using Business.Constants;
-using Business.Dtos.Request;
-using Business.Helpers;
-using Business.Interfaces;
+﻿using Business.Common.Constants;
+using Business.Common.Dtos.Request;
+using Business.Common.Helpers;
+using Business.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -39,7 +39,7 @@ namespace API.Controllers
             if (!response.Succeeded)
                 return BadRequest(response);
 
-            return StatusCode(201, response);
+            return StatusCode(AppConstants.StatusCreated, response);
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace API.Controllers
         /// <response code="200">Proceso masivo finalizado.</response>
         /// <response code="400">Lista vacía o error en el proceso.</response>
         [HttpPost("Bulk")]
-        public async Task<IActionResult> CreateBulk([FromBody] List<PostCreate> dtos)
+        public async Task<IActionResult> CreateBulk([FromBody] IEnumerable<PostCreate> dtos)
         {
             var response = await _service.CreateBulk(dtos);
 
@@ -73,7 +73,38 @@ namespace API.Controllers
             var response = await _service.GetAllPagedAsync(validPage, validSize);
 
             if (!response.Succeeded)
-                return StatusCode(500, response);
+                return StatusCode(AppConstants.StatusInternalServer, response);
+
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Obtiene una publicación específica por su ID.
+        /// </summary>
+        /// <param name="id">ID de la publicación.</param>
+        /// <returns>Detalle de la publicación encontrada.</returns>
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var response = await _service.GetByIdAsync(id);
+
+            if (!response.Succeeded)
+                return NotFound(response);
+
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Elimina una publicación de forma lógica o física según la configuración.
+        /// </summary>
+        /// <param name="id">ID de la publicación a eliminar.</param>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var response = await _service.Delete(id);
+
+            if (!response.Succeeded)
+                return BadRequest(response);
 
             return Ok(response);
         }
