@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Project.Tests.ControllerTests
+namespace Api.Tests.ControllerTests
 {
     public class CustomerControllerTests
     {

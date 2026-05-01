@@ -26,10 +26,7 @@ namespace Business.Services
         /// <param name="customerRepository">Repositorio para el acceso a datos de clientes.</param>
         /// <param name="postRepository">Repositorio para el acceso a datos de publicaciones.</param>
         /// <param name="logger">Servicio de registro de eventos (logs).</param>
-        public CustomerService(
-            ICustomerRepository customerRepository,
-            IPostRepository postRepository,
-            ILogger<CustomerService> logger)
+        public CustomerService(ICustomerRepository customerRepository, ILogger<CustomerService> logger)
         {
             _customerRepository = customerRepository;
             _logger = logger;

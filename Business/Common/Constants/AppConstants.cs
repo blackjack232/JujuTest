@@ -22,6 +22,8 @@
         public const int CustomerNameMaxLength = 100;
         public const int StatusCreated = 201;
         public const int StatusInternalServer = 500;
+        // Validación de nombres: Solo letras (incluye tildes, ñ y espacios)
+        public const string RegexOnlyLetters = @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$";
 
     }
 }

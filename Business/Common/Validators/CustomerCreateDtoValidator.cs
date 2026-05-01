@@ -9,8 +9,14 @@ namespace Business.Common.Validators
         public CustomerCreateDtoValidator()
         {
             RuleFor(x => x.Name)
-                .NotEmpty().WithMessage(AppMessages.CustomerNameRequired)
-                .MaximumLength(100).WithMessage(AppMessages.CustomerNameMaxLength);
+                 .NotEmpty()
+                 .WithMessage(AppMessages.CustomerNameRequired)
+
+                 .MaximumLength(AppConstants.CustomerNameMaxLength)
+                 .WithMessage(AppMessages.CustomerNameMaxLength)
+
+                 .Matches(AppConstants.RegexOnlyLetters)
+                 .WithMessage(AppMessages.CustomerNameOnlyLetters);
         }
     }
 }

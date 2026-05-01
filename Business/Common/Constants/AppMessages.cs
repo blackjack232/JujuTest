@@ -31,6 +31,7 @@
         // Mensajes de Validación para Clientes
         public const string CustomerNameRequired = "El nombre del cliente es obligatorio.";
         public const string CustomerNameMaxLength = "El nombre del cliente no puede exceder los 100 caracteres.";
+        public const string CustomerNameOnlyLetters = "El nombre solo debe contener letras.";
 
         // Mensajes de Validación para Posts
         public const string PostCustomerRequired = "Debe seleccionar un cliente válido para la publicación.";
