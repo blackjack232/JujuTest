@@ -217,8 +217,11 @@ Todas las respuestas utilizan el envoltorio `ResponseApi<T>` para estandarizar l
 ```json
 {
   "succeeded": true,
-  "message": "Proceso finalizado. Insertados: 10. Omitidos: 2.",
-  "data": true
+  "message": "Consulta paginada completada.",
+  "errors": [],
+  "data": {
+    "name": "Juan Gomez"
+  }
 }
 ```
 
