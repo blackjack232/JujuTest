@@ -103,6 +103,46 @@ Implementación de **Repository Pattern** sobre **Entity Framework Core** para a
   ✔ Truncado automático de texto
 
 ---
+## ✅ Requerimientos de la Prueba
+
+Se implementaron las siguientes soluciones solicitadas:
+
+1. ✔ Corrección del endpoint de actualización de Customer  
+2. ✔ Validación de nombre único en creación de Customer  
+3. ✔ Validaciones de negocio en creación de Post:
+   - Validación de existencia del Customer  
+   - Truncado de texto según reglas de negocio (longitud máxima + sufijo "...")  
+   - Asignación automática de Category según Type  
+4. ✔ Eliminación en cascada de Post al eliminar Customer  
+5. ✔ Implementación de API de carga masiva (Bulk Post)  
+6. ✔ Mejora general del código aplicando buenas prácticas (Clean Architecture, SOLID)
+
+---
+
+## 🚀 Mejoras Adicionales Implementadas
+
+- ✔ Endpoint para obtener Customer por ID  
+- ✔ Endpoint para actualizar Customer  
+- ✔ Endpoint para eliminar Customer  
+- ✔ Endpoint para listar Posts paginados  
+- ✔ Endpoint para obtener Post por ID  
+- ✔ Validaciones centralizadas en servicios  
+- ✔ Manejo estandarizado de respuestas (`ResponseApi<T>`)  
+- ✔ Implementación de paginación reutilizable  
+- ✔ Optimización de base de datos mediante índice en columna `Name`
+
+---
+
+### ⚡ Optimización de Base de Datos
+
+Se implementó un índice para mejorar el rendimiento en búsquedas por nombre de cliente:
+
+```sql
+CREATE INDEX IX_Customer_Name 
+ON [JujuTest].[dbo].[Customer](Name);
+```
+
+---
 
 ## 📂 Estructura del Repositorio
 
@@ -118,7 +158,7 @@ Implementación de **Repository Pattern** sobre **Entity Framework Core** para a
  ┣ 📂 DataAccess
  ┃ ┣ 📂 Context (Configuración de Entity Framework)
  ┃ ┣ 📂 Data (Entidades de base de datos)
- ┃ ┗ 📂 Repositories (Acceso a datos)
+ ┃ ┣ 📂 Repositories (Acceso a datos)
  ┃ ┗ 📂 Interfaces (Interfaces repositorio)
  ┗ 📂 Tests
    ┣ 📂 Api.Tests
@@ -126,21 +166,47 @@ Implementación de **Repository Pattern** sobre **Entity Framework Core** para a
    ┗ 📂 Business.Tests
      ┗ 📂 ServiceTests (Pruebas unitarias para servicios de negocio)
 ```
-
 ---
-
 ## 📋 Endpoints Principales
 
 ### 👥 Customers
-- `GET /api/customer` → Listado paginado  
-- `POST /api/customer` → Creación con validación de nombre  
+
+- `GET /api/customer`  
+  → Listado paginado de clientes  
+
+- `GET /api/customer/{id}`  
+  → Obtener cliente por ID  
+
+- `POST /api/customer`  
+  → Creación de cliente con validaciones de negocio  
+
+- `PUT /api/customer/{id}`  
+  → Actualización de cliente existente  
+
+- `DELETE /api/customer/{id}`  
+  → Eliminación de cliente y sus dependencias  
+
+---
 
 ### 📝 Posts
-- `POST /api/post/bulk` →  
-  Motor de carga masiva con filtrado de clientes inexistentes y tipos no válidos  
 
-- `DELETE /api/post/{id}` →  
-  Eliminación física verificada  
+- `GET /api/post`  
+  → Listado paginado de publicaciones  
+
+- `GET /api/post/{id}`  
+  → Obtener publicación por ID  
+
+- `POST /api/post`  
+  → Creación de publicación con reglas de negocio (truncado y categorización)  
+
+- `POST /api/post/bulk`  
+  → Carga masiva de publicaciones  
+  ✔ Filtra clientes inexistentes  
+  ✔ Valida tipos no permitidos  
+  ✔ Aplica reglas automáticamente  
+
+- `DELETE /api/post/{id}`  
+  → Eliminación de publicación  
 
 ---
 
@@ -158,6 +224,26 @@ Todas las respuestas utilizan el envoltorio `ResponseApi<T>` para estandarizar l
 
 ---
 
+## ⚙️ Ejecución del Proyecto
+
+1. Restaurar la base de datos:
+   - Usar archivo `.bak` o script `.sql`
+
+2. Configurar la cadena de conexión en:
+   - `appsettings.json`
+
+3. Ejecutar el proyecto:
+
+```bash
+dotnet run
+```
+
+4. Acceder a Swagger:
+```
+https://localhost:{port}/swagger
+```
+---
+
 ## 📌 Notas Finales
 
 Este proyecto está diseñado para ser:
@@ -166,3 +252,5 @@ Este proyecto está diseñado para ser:
 - Fácil de testear 🧪  
 
 Siguiendo buenas prácticas de desarrollo en .NET.
+
+---
